@@ -39,10 +39,12 @@ class ExtractAPI(Resource):
         date = args['date']
 
         headers = {'Content-Type': 'application/json'}
-        core_data = json.dumps({'text': text})
-        ccnlp = os.environ.get('CCNLP_PORT_5000_TCP_ADDR')
-        ccnlp_url = 'http://{}:5000/process'.format(ccnlp)
-        r = requests.post(ccnlp_url, data=core_data, headers=headers)
+        ccnlp = os.environ.get('CORENLP_DOCKER_PORT_9000_TCP_ADDR')
+        ccnlp_url = 'http://{}:9000/?properties='.format(ccnlp)
+        properties = {'annotators': 'parse', 
+                      'outputFormat': 'json', 
+                      'tokenize.whitespace': 'true'}
+        r = requests.post(ccnlp_url, json=text, params=properties, headers=headers)
         out = r.json()
 
         event_dict = process_corenlp(out, date, storyid)
@@ -64,9 +66,10 @@ def process_corenlp(output, date, STORYID):
     for i, sent in enumerate(output['sentences']):
         sents = output['sentences']
         event_dict[STORYID]['sents'][i] = {}
-        event_dict[STORYID]['sents'][i]['content'] = ' '.join(sents[i]['tokens'])
-        event_dict[STORYID]['sents'][i]['parsed'] = sents[i]['parse'].upper().replace(')', ' )')
-
+        tokens = [j['word'] for j in sents[i]['tokens']]
+        event_dict[STORYID]['sents'][i]['content'] = ' '.join(tokens)
+        paren_space = sents[i]['parse'].upper().replace(')', ' )')
+        event_dict[STORYID]['sents'][i]['parsed'] =paren_space.replace('\n','')
     return event_dict
 
 

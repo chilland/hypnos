@@ -1,11 +1,11 @@
 hypnos:
     build: .
     links:
-        - ccnlp
+        - corenlp-docker
         - petrarch
     ports:
         - "5002:5002"
-ccnlp:
-    image: caerusassociates/ccnlp:1.0.0
+corenlp-docker:
+    image: chilland/corenlp-docker:latest
 petrarch:
     build: petrarch/.
